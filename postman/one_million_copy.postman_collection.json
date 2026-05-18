@@ -1,0 +1,466 @@
+{
+  "info": {
+    "_postman_id": "6e972488-6644-4ffa-8f75-f3f7cdb5eb7b",
+    "name": "One Million Copy - Leads API",
+    "description": "# Instrucciones de uso\n\nEsta coleccion contiene las APIs del backend de leads.\n\n## 1) Levantar el proyecto\n\nOpcion local:\n- npm install\n- npm run prisma:generate\n- npm run prisma:migrate:deploy\n- npm run prisma:seed\n- npm run start:dev\n\nOpcion Docker:\n- npm run docker:up\n- docker compose exec api npm run prisma:migrate:deploy\n- docker compose exec api npm run prisma:seed\n\n## 2) Variables de la coleccion\n\n- hostUrl: URL host de la API\n- baseUrl: URL base con prefijo /api\n- docsUrl: URL de Swagger\n- apiKey: header x-api-key\n- leadId: se llena automaticamente al crear un lead\n\n## 3) Flujo recomendado\n\n1. Health check\n2. Crear lead\n3. Listar leads\n4. Obtener lead por ID\n5. Actualizar lead\n6. Estadisticas\n7. Resumen IA\n8. Webhook\n9. Eliminar lead\n\n## 4) Notas\n\n- Los endpoints de /leads usan API key por header x-api-key.\n- /health no requiere auth, pero puede recibir el header sin problema.\n- Si no hay key de LLM configurada, /leads/ai/summary devuelve resumen mock.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "00 - Guia",
+      "description": "Carpeta de onboarding rapido para la coleccion.",
+      "item": [
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Abre la documentacion Swagger para inspeccionar modelos y respuestas.",
+            "url": {
+              "raw": "{{docsUrl}}",
+              "host": [
+                "{{docsUrl}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Health",
+      "item": [
+        {
+          "name": "Health check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Verifica que la API esta arriba.",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Leads CRUD",
+      "item": [
+        {
+          "name": "Create lead",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set('leadId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Crea un nuevo lead. Guarda id en la variable leadId para requests siguientes.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Postman Lead\",\n  \"email\": \"postman.lead.{{$timestamp}}@example.com\",\n  \"telefono\": \"+573001234567\",\n  \"fuente\": \"instagram\",\n  \"producto_interes\": \"Curso de copywriting\",\n  \"presupuesto\": 450\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List leads",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista leads con paginacion y filtros opcionales.",
+            "url": {
+              "raw": "{{baseUrl}}/leads?page=1&limit=20&fuente=instagram&fecha_inicio=2026-01-01T00:00:00.000Z&fecha_fin=2026-12-31T23:59:59.999Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "fuente",
+                  "value": "instagram"
+                },
+                {
+                  "key": "fecha_inicio",
+                  "value": "2026-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "fecha_fin",
+                  "value": "2026-12-31T23:59:59.999Z"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get lead by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Consulta un lead por su ID. Requiere variable leadId.",
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update lead",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Actualiza campos del lead por ID.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Lead Actualizado\",\n  \"producto_interes\": \"Mentoria embudos\",\n  \"presupuesto\": 980\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete lead (soft delete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "Elimina (soft delete) un lead por ID.",
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Leads Analytics y IA",
+      "item": [
+        {
+          "name": "Leads stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Obtiene estadisticas agregadas de leads.",
+            "url": {
+              "raw": "{{baseUrl}}/leads/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "stats"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AI summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Genera resumen ejecutivo de leads. Si no hay API key LLM, responde resumen mock.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fuente\": \"facebook\",\n  \"fecha_inicio\": \"2026-01-01T00:00:00.000Z\",\n  \"fecha_fin\": \"2026-12-31T23:59:59.999Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leads/ai/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "ai",
+                "summary"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Webhook",
+      "item": [
+        {
+          "name": "Typeform webhook (simulado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Simula el webhook de Typeform para crear un lead desde payload anidado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_id\": \"evt_01hxm3w9\",\n  \"form_id\": \"frm_abc123\",\n  \"submitted_at\": \"2026-05-18T14:30:00.000Z\",\n  \"lead\": {\n    \"nombre\": \"Camila Rojas\",\n    \"email\": \"camila.rojas.{{$timestamp}}@example.com\",\n    \"telefono\": \"+573001234567\",\n    \"fuente\": \"landing_page\",\n    \"producto_interes\": \"Mentoria embudos\",\n    \"presupuesto\": 980\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leads/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "webhook"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "hostUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "docsUrl",
+      "value": "http://localhost:3000/docs",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "local-dev-api-key",
+      "type": "string"
+    },
+    {
+      "key": "leadId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
