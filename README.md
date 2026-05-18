@@ -149,6 +149,8 @@ curl -X POST http://localhost:3000/api/leads/webhook \
   }'
 ```
 
+Por comodidad puedes usar el archivo de postman que se encuentra en la carpeta de postman para hacer las pruebas de forma local
+
 ## 6) Docker
 
 Levantar todo:
