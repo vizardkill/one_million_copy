@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: one_million_copy_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: one_million_copy
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: one_million_copy_api
+    depends_on:
+      - postgres
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/one_million_copy?schema=public
+      API_KEY: local-dev-api-key
+      THROTTLE_TTL_MS: 60000
+      THROTTLE_LIMIT: 100
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      OPENAI_TEMPERATURE: ${OPENAI_TEMPERATURE:-0}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-nvidia/nemotron-3-nano-30b-a3b:free}
+      OPENROUTER_FALLBACK_MODELS: ${OPENROUTER_FALLBACK_MODELS:-liquid/lfm-2.5-1.2b-instruct:free,deepseek/deepseek-v4-flash:free,baidu/cobuddy:free,z-ai/glm-4.5-air:free}
+      OPENROUTER_ATTEMPTS_PER_MODEL: ${OPENROUTER_ATTEMPTS_PER_MODEL:-1}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_HTTP_REFERER: ${OPENROUTER_HTTP_REFERER:-http://localhost:3000}
+      OPENROUTER_APP_TITLE: ${OPENROUTER_APP_TITLE:-One Million Copy Leads API}
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
