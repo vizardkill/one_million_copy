@@ -8,6 +8,8 @@ describe('Health (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
+    process.env.API_KEY = 'test-api-key';
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -33,7 +35,12 @@ describe('Health (e2e)', () => {
       });
   });
 
+  it('/api/leads (GET) should return 401 without api key', () => {
+    return request(app.getHttpServer()).get('/api/leads').expect(401);
+  });
+
   afterEach(async () => {
     await app.close();
+    delete process.env.API_KEY;
   });
 });
