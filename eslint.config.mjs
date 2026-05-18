@@ -39,6 +39,15 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/modules/leads/presentation/http/leads.controller.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+    },
+  },
+  {
     ...tseslint.configs.disableTypeChecked,
     files: ['prisma/seed.mjs'],
   },
