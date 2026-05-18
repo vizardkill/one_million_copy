@@ -38,4 +38,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
     },
   },
+  {
+    ...tseslint.configs.disableTypeChecked,
+    files: ['prisma/seed.mjs'],
+  },
 );
